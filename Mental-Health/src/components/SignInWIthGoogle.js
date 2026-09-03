@@ -2,10 +2,12 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "./Firebase";
 import { toast } from "react-toastify";
 import { setDoc, doc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function SignInwithGoogle() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/home";
 
   const googleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -31,7 +33,7 @@ function SignInwithGoogle() {
           position: "top-center",
         });
 
-        navigate("/home");
+        navigate(from, { replace: true });
       }
     } catch (error) {
       console.error("Google Auth Error:", error);

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./Firebase";
 import { toast } from "react-toastify";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import SignInwithGoogle from "./SignInWIthGoogle";
 import "../css/Login.css";
 
@@ -11,6 +11,10 @@ function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/home";
+  const redirectNotice = location.state?.from ? "Please sign in to access your private sanctuary." : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +24,7 @@ function Login() {
       toast.success("Welcome back! Logged in successfully.", {
         position: "top-center",
       });
-      navigate("/home");
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error: ", error.message);
       toast.error("Invalid credentials. Please verify your email and password.", {
@@ -42,6 +46,22 @@ function Login() {
       <div className="auth-card">
         <h2 className="auth-card-title">Welcome Back</h2>
         <p className="auth-card-subtitle">Enter your details to access your wellness sanctuary.</p>
+
+        {redirectNotice && (
+          <div style={{
+            background: "#E8F5EE",
+            color: "#1B4332",
+            padding: "10px 14px",
+            borderRadius: "8px",
+            fontSize: "0.88rem",
+            fontWeight: 600,
+            textAlign: "center",
+            marginBottom: "18px",
+            border: "1px solid #A7D8BA"
+          }}>
+            🔒 {redirectNotice}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-form-group">

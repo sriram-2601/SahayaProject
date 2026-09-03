@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth } from './Firebase';
 import "../css/LandingPage.css";
 
 const moods = [
@@ -13,6 +14,14 @@ const moods = [
 const LandingPage = () => {
   const navigate = useNavigate();
   const [selectedMood, setSelectedMood] = useState(null);
+
+  const handleStartSession = () => {
+    if (auth.currentUser) {
+      navigate("/home");
+    } else {
+      navigate("/login");
+    }
+  };
 
   const handleMoodSelect = (mood) => {
     setSelectedMood(mood);
@@ -61,7 +70,7 @@ const LandingPage = () => {
 
         {/* Action Buttons */}
         <div className="landing-actions">
-          <button className="landing-btn-primary" onClick={() => navigate("/home")}>
+          <button className="landing-btn-primary" onClick={handleStartSession}>
             <span>Willing to Share?</span>
             <span>💬</span>
           </button>

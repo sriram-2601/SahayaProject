@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "./css/App.css";
@@ -8,7 +8,6 @@ import Chatbot from "./components/Chatbot";
 import Consultancy from "./components/Consultancy";
 import ContactUs from "./components/ContactUs";
 import Feedback from "./components/Feedback";
-import { auth } from "./components/Firebase";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
@@ -26,15 +25,9 @@ import NotificationScheduler from './components/NotificationScheduler';
 import Model from "./components/Model";
 import ConsultancyProfiles from "./components/ConsultancyProfiles";
 import BookAppointment from "./components/BookAppointment";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      // User auth listener
-    });
-    return () => unsubscribe();
-  }, []);
-
   const basename = window.location.pathname.startsWith("/SahayaProject")
     ? "/SahayaProject"
     : window.location.pathname.startsWith("/SahayA")
@@ -44,29 +37,134 @@ function App() {
   return (
     <Router basename={basename}>
       <Routes>
-        {/* Landing Page at root */}
+        {/* Public Routes - Accessible to all visitors */}
         <Route path="/" element={<LandingPage />} />
-
-        {/* Core Wellness & Support Routes */}
-        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignUp />} />
         <Route path="/about" element={<About />} />
-        <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/consultancy" element={<Consultancy />} />
-        <Route path="/consultancy-profiles" element={<ConsultancyProfiles />} />
-        <Route path="/book-appointment" element={<BookAppointment />} />
-        <Route path="/notes" element={<Notes />} />
-        <Route path="/scribble-pad" element={<ScribblePad />} />
-        <Route path="/tasksDone" element={<Tasks />} />
-        <Route path="/personal-assistant" element={<PersonalAssistant />} />
-        <Route path="/notification-scheduler" element={<NotificationScheduler />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/UserInfoForm" element={<UserInfoForm />} />
-        <Route path="/Model" element={<Model />} />
         <Route path="/contactUs" element={<ContactUs />} />
-        <Route path="/chat-application" element={<ChatApplication />} />
+
+        {/* Protected Routes - Requires Authentication */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chatbot"
+          element={
+            <ProtectedRoute>
+              <Chatbot />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notes"
+          element={
+            <ProtectedRoute>
+              <Notes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scribble-pad"
+          element={
+            <ProtectedRoute>
+              <ScribblePad />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasksDone"
+          element={
+            <ProtectedRoute>
+              <Tasks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/UserInfoForm"
+          element={
+            <ProtectedRoute>
+              <UserInfoForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultancy"
+          element={
+            <ProtectedRoute>
+              <Consultancy />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/consultancy-profiles"
+          element={
+            <ProtectedRoute>
+              <ConsultancyProfiles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/book-appointment"
+          element={
+            <ProtectedRoute>
+              <BookAppointment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/personal-assistant"
+          element={
+            <ProtectedRoute>
+              <PersonalAssistant />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notification-scheduler"
+          element={
+            <ProtectedRoute>
+              <NotificationScheduler />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/feedback"
+          element={
+            <ProtectedRoute>
+              <Feedback />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/Model"
+          element={
+            <ProtectedRoute>
+              <Model />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat-application"
+          element={
+            <ProtectedRoute>
+              <ChatApplication />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
