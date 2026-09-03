@@ -1,0 +1,8 @@
+node_modules/
+Mental-Health/node_modules/
+Mental-Health/build/
+.history/
+.vscode/
+.env
+.env.local
+.DS_Store
