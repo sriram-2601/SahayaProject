@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/SahayaProject/static/css/main.ceb8ff49.css",
-    "main.js": "/SahayaProject/static/js/main.5bb956d7.js",
+    "main.css": "/SahayaProject/static/css/main.d531e077.css",
+    "main.js": "/SahayaProject/static/js/main.47e2651d.js",
     "static/js/511.45fed91b.chunk.js": "/SahayaProject/static/js/511.45fed91b.chunk.js",
     "index.html": "/SahayaProject/index.html",
-    "main.ceb8ff49.css.map": "/SahayaProject/static/css/main.ceb8ff49.css.map",
-    "main.5bb956d7.js.map": "/SahayaProject/static/js/main.5bb956d7.js.map",
+    "main.d531e077.css.map": "/SahayaProject/static/css/main.d531e077.css.map",
+    "main.47e2651d.js.map": "/SahayaProject/static/js/main.47e2651d.js.map",
     "511.45fed91b.chunk.js.map": "/SahayaProject/static/js/511.45fed91b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ceb8ff49.css",
-    "static/js/main.5bb956d7.js"
+    "static/css/main.d531e077.css",
+    "static/js/main.47e2651d.js"
   ]
 }
