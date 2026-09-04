@@ -26,6 +26,7 @@ import Model from "./components/Model";
 import ConsultancyProfiles from "./components/ConsultancyProfiles";
 import BookAppointment from "./components/BookAppointment";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Meditation from "./components/Meditation";
 
 function App() {
   const basename = window.location.pathname.startsWith("/SahayaProject")
@@ -162,6 +163,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ChatApplication />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meditation"
+          element={
+            <ProtectedRoute>
+              <Meditation />
             </ProtectedRoute>
           }
         />

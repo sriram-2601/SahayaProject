@@ -67,7 +67,47 @@ function Chatbot() {
     await processMessageToChatBOT(newMessages);
   };
 
+  // Intelligent offline counselor response engine
+  const getEmpatheticFallback = (userText) => {
+    const text = userText.toLowerCase();
+
+    // Crisis detection
+    if (text.includes("suicide") || text.includes("kill myself") || text.includes("end my life") || text.includes("die") || text.includes("hurt myself")) {
+      return "I hear how intensely heavy things feel right now, but please know you do not have to carry this alone. Your life has profound value. Please reach out right now to caring professionals: 📞 Kiran Helpline: 1800-599-0019 | Tele-MANAS: 14416 | Global: 988 Lifeline. Help is available 24/7, confidential and free.";
+    }
+
+    // Anxiety & Panic
+    if (text.includes("anxious") || text.includes("anxiety") || text.includes("panic") || text.includes("stress") || text.includes("overwhelm") || text.includes("racing")) {
+      return "It is completely understandable to feel overwhelmed. Right now, let's bring your nervous system back to safety. Place your feet firmly on the floor. Take a slow inhale through your nose for 4 counts, hold for 4, and exhale gently for 6. Can you name 3 objects you can see around you right now? 🌿";
+    }
+
+    // Sadness & Depressive feelings
+    if (text.includes("sad") || text.includes("cry") || text.includes("crying") || text.includes("hopeless") || text.includes("depress") || text.includes("unhappy")) {
+      return "I am sitting with you in this feeling. It takes courage to acknowledge sadness. You don't have to fix everything right this moment. Give yourself permission to feel, wrap yourself in warmth, and take things one gentle moment at a time. What would feel kindest to your soul right now?";
+    }
+
+    // Sleep & Insomnia
+    if (text.includes("sleep") || text.includes("insomnia") || text.includes("tired") || text.includes("night") || text.includes("exhausted")) {
+      return "Rest can feel so elusive when our mind is full. Try unclenching your jaw, letting your shoulders drop away from your ears, and softening your forehead. Would you like to try 5 minutes in our Guided Meditation chamber (4-7-8 breathing) to help you drift off peacefully?";
+    }
+
+    // Loneliness & Isolation
+    if (text.includes("lonely") || text.includes("alone") || text.includes("nobody") || text.includes("isolated")) {
+      return "Feeling lonely can be an ache, but please know that you are not invisible. You are part of our Sahaya community. I am here listening to you, and our Peer Support Lounge has fellow members who understand what you are experiencing. You matter deeply here.";
+    }
+
+    // Gratitude & Positivity
+    if (text.includes("thank") || text.includes("good") || text.includes("happy") || text.includes("better") || text.includes("great") || text.includes("calm")) {
+      return "It warms my heart to hear that! Celebrate this peaceful moment, anchor the feeling in your chest, and carry it gently into the rest of your day. How else can I support your journey?";
+    }
+
+    // Default Empathetic Response
+    return "Thank you for sharing that with me. It takes real courage to put feelings into words. Take a slow, grounding breath. Whatever is on your mind, I am here without judgment. How does your body feel as you reflect on this?";
+  };
+
   const processMessageToChatBOT = async (chatMessages) => {
+    const lastUserMessage = chatMessages[chatMessages.length - 1]?.message || "";
+
     const apiMessages = chatMessages.map((messageObject) => {
       let role = messageObject.sender === chatbotName ? "assistant" : "user";
       return { role: role, content: messageObject.message };
@@ -83,17 +123,17 @@ function Chatbot() {
 
     try {
       if (!API_KEY) {
-        // Provide thoughtful empathetic fallback response if no API key is configured
+        // Use empathetic offline counselor
         setTimeout(() => {
           setMessages([
             ...chatMessages,
             {
-              message: "Thank you for sharing that with me. It takes courage to open up. Remember to breathe deeply, be patient with yourself, and know that you are not alone on this journey. How does your body feel as you reflect on this?",
+              message: getEmpatheticFallback(lastUserMessage),
               sender: chatbotName
             }
           ]);
           setIsTyping(false);
-        }, 1000);
+        }, 800);
         return;
       }
 
@@ -116,14 +156,22 @@ function Chatbot() {
             sender: chatbotName
           }
         ]);
+      } else {
+        setMessages([
+          ...chatMessages,
+          {
+            message: getEmpatheticFallback(lastUserMessage),
+            sender: chatbotName
+          }
+        ]);
       }
       setIsTyping(false);
     } catch (error) {
-      console.error("Error processing message:", error);
+      console.warn("Groq API fallback:", error.message);
       setMessages([
         ...chatMessages,
         {
-          message: "I hear you, and I appreciate you sharing your thoughts. Take a moment to breathe. Even on tough days, your well-being matters deeply.",
+          message: getEmpatheticFallback(lastUserMessage),
           sender: chatbotName
         }
       ]);

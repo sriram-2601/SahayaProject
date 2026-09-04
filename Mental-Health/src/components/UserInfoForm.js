@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { saveUserInfo } from "./Firebase";
+import React, { useState, useEffect } from "react";
+import { auth, db, saveUserInfo } from "./Firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "../css/UserInfoForm.css";
 import Footer from "./Footer";
 import Navbar from "./Nav";
@@ -15,7 +16,45 @@ function UserInfoForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+
+  // Load existing profile details
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const docRef = doc(db, "Users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.firstName) setFirstName(data.firstName);
+            if (data.lastName) setLastName(data.lastName);
+            if (data.age) setAge(data.age);
+            if (data.number) setNumber(data.number);
+            if (data.address) setAddress(data.address);
+          }
+        } catch (err) {
+          console.warn("Could not load remote profile:", err);
+        }
+      }
+      // Check local fallback
+      const local = localStorage.getItem("sahaya_profile");
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          if (!firstName && parsed.firstName) setFirstName(parsed.firstName);
+          if (!lastName && parsed.lastName) setLastName(parsed.lastName);
+          if (!age && parsed.age) setAge(parsed.age);
+          if (!number && parsed.number) setNumber(parsed.number);
+          if (!address && parsed.address) setAddress(parsed.address);
+        } catch (e) {}
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,13 +67,19 @@ function UserInfoForm() {
     setLoading(true);
     setErrorMessage("");
 
+    const profileData = { firstName, lastName, age, address, number };
+
     try {
-      await saveUserInfo(firstName, lastName, age, address, number);
+      const currentUid = userId || auth.currentUser?.uid;
+      if (currentUid) {
+        await saveUserInfo(currentUid, profileData);
+      }
+      localStorage.setItem("sahaya_profile", JSON.stringify(profileData));
       setSuccessMessage("Your profile information has been securely updated! 🌿");
       setShowPopup(true);
     } catch (error) {
       // Graceful local cache fallback if Firestore offline
-      localStorage.setItem("sahaya_profile", JSON.stringify({ firstName, lastName, age, address, number }));
+      localStorage.setItem("sahaya_profile", JSON.stringify(profileData));
       setSuccessMessage("Your profile details have been saved locally! 🌿");
       setShowPopup(true);
     } finally {

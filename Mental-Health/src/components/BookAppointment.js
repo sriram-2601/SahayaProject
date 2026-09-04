@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { auth, db } from "./Firebase";
+import { collection, addDoc } from "firebase/firestore";
 import Nav from "./Nav";
 import Footer from "./Footer";
 import "../css/BookAppointment.css";
@@ -15,6 +17,7 @@ const BookAppointment = () => {
   const [locationAddress, setLocationAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [confirmationNotice, setConfirmationNotice] = useState("");
 
   const handleBookAppointment = async (e) => {
     e.preventDefault();
@@ -33,10 +36,31 @@ const BookAppointment = () => {
       date: date || new Date().toISOString().split("T")[0],
       time: time || "10:00 AM",
       location: locationAddress || "Online Video Consultation",
+      phone: trimmedPhone,
+      status: "Confirmed",
+      createdAt: new Date(),
     };
 
+    // 1. Persist directly to Firestore
     try {
-      // Mock / Backend API call with graceful fallback
+      const currentUid = auth.currentUser?.uid || "guest";
+      if (currentUid !== "guest") {
+        const apptsCollection = collection(db, "Users", currentUid, "appointments");
+        await addDoc(apptsCollection, appointmentDetails);
+      }
+    } catch (firestoreErr) {
+      console.warn("Could not save appointment to Firestore:", firestoreErr);
+    }
+
+    // 2. Always persist to localStorage for instant profile view
+    try {
+      const cached = JSON.parse(localStorage.getItem("sahaya_appointments") || "[]");
+      cached.unshift(appointmentDetails);
+      localStorage.setItem("sahaya_appointments", JSON.stringify(cached));
+    } catch (cacheErr) {}
+
+    // 3. Contact Express backend server on port 4000
+    try {
       const response = await fetch("http://localhost:4000/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,15 +69,15 @@ const BookAppointment = () => {
 
       const result = await response.json();
       if (result.success) {
-        setBookingSuccess(true);
+        setConfirmationNotice(result.message || "Confirmation sent to your phone!");
       } else {
-        // Even if local notification server isn't running, show confirmation for the user
-        setBookingSuccess(true);
+        setConfirmationNotice("Appointment confirmed in your personal profile sanctuary.");
       }
     } catch (error) {
-      // Graceful fallback for demonstration when local port 4000 is offline
-      setBookingSuccess(true);
+      // Graceful fallback when local port 4000 is not running
+      setConfirmationNotice("Appointment booked and securely stored in your wellness records.");
     } finally {
+      setBookingSuccess(true);
       setLoading(false);
     }
   };
@@ -80,20 +104,32 @@ const BookAppointment = () => {
 
           {bookingSuccess ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "12px" }}>🌿</div>
-              <h2 style={{ fontSize: "1.3rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "8px" }}>
+              <div style={{ fontSize: "3.2rem", marginBottom: "12px" }}>🌿</div>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "8px" }}>
                 Appointment Confirmed!
               </h2>
-              <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", marginBottom: "20px" }}>
-                Your appointment with <strong>{professional?.name || "our specialist"}</strong> has been scheduled.
-                A confirmation reminder has been prepared.
+              <p style={{ color: "var(--color-text-body)", fontSize: "0.95rem", marginBottom: "6px" }}>
+                Your session with <strong>{professional?.name || "our specialist"}</strong> has been scheduled.
               </p>
-              <button
-                className="appointment-submit-btn"
-                onClick={() => navigate("/consultancy-profiles")}
-              >
-                Back to Specialists
-              </button>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", marginBottom: "24px" }}>
+                {confirmationNotice}
+              </p>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                <button
+                  className="appointment-submit-btn"
+                  style={{ background: "var(--color-primary)", color: "white" }}
+                  onClick={() => navigate("/profile")}
+                >
+                  View in My Profile &rarr;
+                </button>
+                <button
+                  className="appointment-submit-btn"
+                  style={{ background: "var(--color-bg)", color: "var(--color-text-main)", border: "1px solid var(--color-border)" }}
+                  onClick={() => navigate("/consultancy-profiles")}
+                >
+                  Back to Specialists
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleBookAppointment}>

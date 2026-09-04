@@ -109,6 +109,22 @@ const Nav = ({ chatbotName }) => {
           </li>
           <li>
             <Link
+              to="/meditation"
+              className={`sahaya-nav-link ${isActive("/meditation") ? "active" : ""}`}
+            >
+              Meditation
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/chat-application"
+              className={`sahaya-nav-link ${isActive("/chat-application") ? "active" : ""}`}
+            >
+              Community
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/about"
               className={`sahaya-nav-link ${isActive("/about") ? "active" : ""}`}
             >
@@ -138,6 +154,13 @@ const Nav = ({ chatbotName }) => {
             {showDropdown && (
               <div className="profile-dropdown-menu">
                 <Link
+                  to="/profile"
+                  className="dropdown-item-link"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <span>🌿</span> My Sanctuary & Profile
+                </Link>
+                <Link
                   to="/UserInfoForm"
                   className="dropdown-item-link"
                   onClick={() => setShowDropdown(false)}
@@ -152,11 +175,18 @@ const Nav = ({ chatbotName }) => {
                   <span>✅</span> My Daily Goals
                 </Link>
                 <Link
+                  to="/chat-application"
+                  className="dropdown-item-link"
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <span>💬</span> Peer Support Lounge
+                </Link>
+                <Link
                   to="/feedback"
                   className="dropdown-item-link"
                   onClick={() => setShowDropdown(false)}
                 >
-                  <span>💬</span> Share Feedback
+                  <span>📝</span> Share Feedback
                 </Link>
                 <div className="dropdown-divider" />
                 <button

@@ -212,6 +212,28 @@ const Home = () => {
                 </p>
               </div>
 
+              {/* Guided Meditation */}
+              <div className="home-feeling-item" onClick={() => navigate("/meditation")}>
+                <div className="home-feeling-icon-box" style={{ background: "#E8F5EE" }}>
+                  <span>🧘</span>
+                </div>
+                <h3 className="home-feeling-title">Guided Meditation</h3>
+                <p className="home-feeling-desc">
+                  Box breathing and soothing nervous system calming rhythms.
+                </p>
+              </div>
+
+              {/* Peer Support Community */}
+              <div className="home-feeling-item" onClick={() => navigate("/chat-application")}>
+                <div className="home-feeling-icon-box" style={{ background: "#FEF3C7" }}>
+                  <span>💬</span>
+                </div>
+                <h3 className="home-feeling-title">Peer Support Lounge</h3>
+                <p className="home-feeling-desc">
+                  Share warm thoughts and receive reassurance from members.
+                </p>
+              </div>
+
               {/* Specialist Guidance */}
               <div className="home-feeling-item" onClick={() => navigate("/consultancy")}>
                 <div className="home-feeling-icon-box" style={{ background: "#EEF2FF" }}>

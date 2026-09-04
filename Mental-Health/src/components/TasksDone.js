@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { db } from "./Firebase";
+import { auth, db } from "./Firebase";
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import "../css/TasksDone.css";
 import Nav from "./Nav.js";
@@ -16,26 +16,33 @@ const TaskDone = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(auth.currentUser?.uid || "guest");
   const navigate = useNavigate();
 
-  const tasksCollection = collection(db, "tasks");
+  const getStorageKey = (uid) => `sahaya_tasks_${uid || "guest"}`;
 
-  // Fetch tasks from Firebase, fallback to local state if offline
-  const fetchTasks = async () => {
+  // Fetch tasks for the authenticated user
+  const fetchTasks = async (uid) => {
+    const activeUid = uid || auth.currentUser?.uid || "guest";
+    const storageKey = getStorageKey(activeUid);
+
     try {
-      const querySnapshot = await getDocs(tasksCollection);
+      const userTasksCollection = collection(db, "Users", activeUid, "tasks");
+      const querySnapshot = await getDocs(userTasksCollection);
       if (!querySnapshot.empty) {
         const tasksData = querySnapshot.docs.map((d) => ({
           id: d.id,
           ...d.data(),
         }));
         setTasks(tasksData);
+        localStorage.setItem(storageKey, JSON.stringify(tasksData));
       } else {
-        setTasks(defaultInitialTasks);
+        const cached = localStorage.getItem(storageKey);
+        setTasks(cached ? JSON.parse(cached) : defaultInitialTasks);
       }
     } catch (error) {
-      console.warn("Using local tasks cache:", error.message);
-      const cached = localStorage.getItem("sahaya_tasks");
+      console.warn("Using local tasks cache for user:", error.message);
+      const cached = localStorage.getItem(storageKey);
       setTasks(cached ? JSON.parse(cached) : defaultInitialTasks);
     } finally {
       setLoading(false);
@@ -47,46 +54,57 @@ const TaskDone = () => {
     if (e) e.preventDefault();
     if (!newTask.trim()) return;
 
+    const activeUid = userId || auth.currentUser?.uid || "guest";
+    const storageKey = getStorageKey(activeUid);
+
     const taskObj = {
       text: newTask.trim(),
       completed: false,
       timestamp: new Date(),
+      userId: activeUid,
     };
 
     try {
-      const docRef = await addDoc(tasksCollection, taskObj);
+      const userTasksCollection = collection(db, "Users", activeUid, "tasks");
+      const docRef = await addDoc(userTasksCollection, taskObj);
       const updated = [...tasks, { id: docRef.id, ...taskObj }];
       setTasks(updated);
-      localStorage.setItem("sahaya_tasks", JSON.stringify(updated));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch (error) {
       const localId = Date.now().toString();
       const updated = [...tasks, { id: localId, ...taskObj }];
       setTasks(updated);
-      localStorage.setItem("sahaya_tasks", JSON.stringify(updated));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     }
     setNewTask("");
   };
 
   // Delete task
   const deleteTask = async (id) => {
+    const activeUid = userId || auth.currentUser?.uid || "guest";
+    const storageKey = getStorageKey(activeUid);
+
     try {
-      const taskDoc = doc(db, "tasks", id);
+      const taskDoc = doc(db, "Users", activeUid, "tasks", id);
       await deleteDoc(taskDoc);
     } catch (error) {
       console.warn("Local task deletion fallback");
     }
     const updated = tasks.filter((t) => t.id !== id);
     setTasks(updated);
-    localStorage.setItem("sahaya_tasks", JSON.stringify(updated));
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   // Toggle completion
   const toggleCompletion = async (id) => {
+    const activeUid = userId || auth.currentUser?.uid || "guest";
+    const storageKey = getStorageKey(activeUid);
+
     const task = tasks.find((t) => t.id === id);
     if (!task) return;
 
     try {
-      const taskDoc = doc(db, "tasks", id);
+      const taskDoc = doc(db, "Users", activeUid, "tasks", id);
       await updateDoc(taskDoc, { completed: !task.completed });
     } catch (error) {
       console.warn("Local toggle fallback");
@@ -96,11 +114,16 @@ const TaskDone = () => {
       t.id === id ? { ...t, completed: !t.completed } : t
     );
     setTasks(updated);
-    localStorage.setItem("sahaya_tasks", JSON.stringify(updated));
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   useEffect(() => {
-    fetchTasks();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      const uid = user ? user.uid : "guest";
+      setUserId(uid);
+      fetchTasks(uid);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
