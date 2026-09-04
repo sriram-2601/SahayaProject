@@ -52,6 +52,7 @@
   "scripts": {
     "start": "react-scripts start",
     "server": "node server/server.js",
+    "test:security": "node server/security_audit.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "build": "react-scripts build",

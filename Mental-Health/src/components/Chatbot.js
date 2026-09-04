@@ -7,12 +7,7 @@ import { useSpeechSynthesis } from 'react-speech-kit';
 import '../css/Chatbot.css';
 import { useNavigate } from "react-router-dom";
 
-const API_KEY = process.env.REACT_APP_GROQ_API_KEY;
-
-const systemMessage = {
-  role: "system",
-  content: "Hello! I’m Sahaya, your empathetic mental health support assistant. I am here to provide a safe, non-judgmental space, listen actively, and guide you with calming reassurance. If you are in crisis, I will gently suggest professional helplines."
-};
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";
 
 function Chatbot() {
   const storedChatbotName = localStorage.getItem("chatbotName");
@@ -113,50 +108,33 @@ function Chatbot() {
       return { role: role, content: messageObject.message };
     });
 
-    const apiRequestBody = {
-      model: "llama3-8b-8192",
-      messages: [
-        systemMessage,
-        ...apiMessages
-      ]
-    };
-
     try {
-      if (!API_KEY) {
-        // Use empathetic offline counselor
-        setTimeout(() => {
+      // Secure Backend Proxy Call (Defends against VAPT #18 Information Disclosure & #30 LLM Attacks)
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ messages: apiMessages })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.success && data?.reply) {
           setMessages([
             ...chatMessages,
             {
-              message: getEmpatheticFallback(lastUserMessage),
+              message: data.reply,
               sender: chatbotName
             }
           ]);
           setIsTyping(false);
-        }, 800);
-        return;
+          return;
+        }
       }
 
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(apiRequestBody)
-      });
-
-      const data = await response.json();
-
-      if (data?.choices?.[0]?.message?.content) {
-        setMessages([
-          ...chatMessages,
-          {
-            message: data.choices[0].message.content,
-            sender: chatbotName
-          }
-        ]);
-      } else {
+      // If backend is in offline mode or returns non-200, engage empathetic offline counselor
+      setTimeout(() => {
         setMessages([
           ...chatMessages,
           {
@@ -164,10 +142,11 @@ function Chatbot() {
             sender: chatbotName
           }
         ]);
-      }
-      setIsTyping(false);
+        setIsTyping(false);
+      }, 500);
+
     } catch (error) {
-      console.warn("Groq API fallback:", error.message);
+      console.warn("Backend AI chat fallback to offline counselor:", error.message);
       setMessages([
         ...chatMessages,
         {
